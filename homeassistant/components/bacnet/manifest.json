@@ -1,0 +1,18 @@
+{
+  "domain": "bacnet",
+  "name": "bacnet",
+  "codeowners": [
+    "@natureFrameworkManager"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://www.home-assistant.io/integrations/bacnet",
+  "homekit": {},
+  "iot_class": "local_polling",
+  "quality_scale": "bronze",
+  "requirements": [
+    "BAC0==2025.6.10"
+  ],
+  "ssdp": [],
+  "zeroconf": []
+}
