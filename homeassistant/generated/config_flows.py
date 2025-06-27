@@ -84,6 +84,7 @@ FLOWS = {
         "baf",
         "balboa",
         "bang_olufsen",
+        "beamer_sensor",
         "blebox",
         "blink",
         "blue_current",

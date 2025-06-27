@@ -659,6 +659,12 @@
       "config_flow": false,
       "iot_class": "local_polling"
     },
+    "beamer_sensor": {
+      "name": "Beamer Sensor",
+      "integration_type": "device",
+      "config_flow": true,
+      "iot_class": "local_polling"
+    },
     "beewi_smartclim": {
       "name": "BeeWi SmartClim BLE sensor",
       "integration_type": "hub",

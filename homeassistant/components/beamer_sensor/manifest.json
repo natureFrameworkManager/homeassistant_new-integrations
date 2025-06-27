@@ -1,0 +1,12 @@
+{
+  "domain": "beamer_sensor",
+  "name": "Beamer Sensor",
+  "codeowners": [],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://www.home-assistant.io/integrations/1",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "quality_scale": "bronze",
+  "requirements": []
+}
