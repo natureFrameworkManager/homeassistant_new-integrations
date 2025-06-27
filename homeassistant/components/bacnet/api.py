@@ -1,39 +1,39 @@
-import asyncio
-import sys
-from argparse import Namespace
+"""API for interacting with BACnet devices in Home Assistant."""
 
-from typing import Any, Dict
+from argparse import Namespace
+import asyncio
+import logging
+import sys
+from typing import Any
 
 from bacpypes3.apdu import AbortPDU, AbortReason, ErrorRejectAbortNack
 from bacpypes3.app import Application
-from bacpypes3.argparse import SimpleArgumentParser
-from bacpypes3.debugging import ModuleLogger, bacpypes_debugging
 from bacpypes3.pdu import Address
-from bacpypes3.primitivedata import ObjectIdentifier, ObjectType, PropertyIdentifier
+from bacpypes3.primitivedata import ObjectIdentifier, PropertyIdentifier
 from bacpypes3.vendor import get_vendor_info
+
 from homeassistant.exceptions import ConfigEntryNotReady
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class BACnetAPI:
-    def __init__(self):
-        pass
+    """API for interacting with BACnet devices."""
 
-    async def _object_identifiers(
-        self,
-        app: Application,
-        device_address: Address,
-        device_identifier: ObjectIdentifier,
+    async def object_identifiers(
+        self, app: Application, device_address: Address, device_identifier: ObjectIdentifier
     ) -> list[ObjectIdentifier]:
-        """Read the entire object list from a device at once, or if that fails, read the object identifiers one at a time."""
+        """Read the entire object list from a device at once, or if that fails, read
+        the object identifiers one at a time.
+        """
+
         # try reading the whole thing at once, but it might be too big and
         # segmentation isn't supported
         try:
-            return await app.read_property(
+            object_list = await app.read_property(
                 device_address, device_identifier, "object-list"
             )
+            return object_list
         except AbortPDU as err:
             if err.apduAbortRejectReason != AbortReason.segmentationNotSupported:
                 sys.stderr.write(f"{device_identifier} object-list abort: {err}\n")
@@ -69,7 +69,9 @@ class BACnetAPI:
 
         return object_list
 
-    async def discoverDevices(self, address_with_mask: str = "192.168.1.104/24") -> list:
+    async def discoverDevices(
+        self, address_with_mask: str = "192.168.1.104/24"
+    ) -> list:
         """Discover BACnet devices on the network."""
         app = None
         try:
@@ -106,102 +108,91 @@ class BACnetAPI:
                 except ErrorRejectAbortNack as err:
                     device_description: str = "Unknown"
                     sys.stderr.write(f"{device_identifier} description error: {err}\n")
-                devices.append({
-                    "device_address": str(device_address),
-                    "device_identifier": str(device_identifier),
-                    "vendor_id": i_am.vendorID,
-                    "vendor_info": vendor_info,
-                    "description": device_description,
-                    "maxAPDULengthAccepted": i_am.maxAPDULengthAccepted,
-                })
+                devices.append(
+                    {
+                        "device_address": str(device_address),
+                        "device_identifier": str(device_identifier),
+                        "vendor_id": i_am.vendorID,
+                        "vendor_info": vendor_info,
+                        "description": device_description,
+                        "maxAPDULengthAccepted": i_am.maxAPDULengthAccepted,
+                    }
+                )
             return devices  # noqa: TRY300
         except Exception as err:
-            _LOGGER.error("BACnet discovery failed: %s", err)
+            print("BACnet discovery failed: %s", err)
             raise ConfigEntryNotReady from err
         finally:
-            if app:
+            # ensure the application is stopped
+            if app is not None:
                 app.close()
 
-
-"""
-async def main() -> None:
-    app = None
-    try:
-        parser = SimpleArgumentParser()
-        parser.add_argument(
-            "low_limit",
-            type=int,
-            help="device instance range low limit",
-        )
-        parser.add_argument(
-            "high_limit",
-            type=int,
-            help="device instance range high limit",
-        )
-        args = parser.parse_args()
-        if _debug:
-            _log.debug("args: %r", args)
-
-        # build an application
-        app = Application.from_args(args)
-        if _debug:
-            _log.debug("app: %r", app)
-
-        # run the query
-        i_ams = await app.who_is(args.low_limit, args.high_limit)
-        for i_am in i_ams:
-            if _debug:
-                _log.debug("    - i_am: %r", i_am)
-
-            device_address: Address = i_am.pduSource
-            device_identifier: ObjectIdentifier = i_am.iAmDeviceIdentifier
-            vendor_info = get_vendor_info(i_am.vendorID)
-            print(f"{device_identifier} @ {device_address}")
-
-            try:
-                device_description: str = await app.read_property(
-                    device_address, device_identifier, "description"
-                )
-                print(f"    description: {device_description}")
-
-            except ErrorRejectAbortNack as err:
-                if show_warnings:
-                    sys.stderr.write(f"{device_identifier} description error: {err}\n")
-            object_list = await object_identifiers(app, device_address, device_identifier)
+    async def getObjects(
+        self,
+        device_address: Address,
+        device_identifier: ObjectIdentifier,
+        vendor_id: int,
+        address_with_mask: str = "192.168.1.104/24",
+    ) -> dict[str, Any]:
+        """Get the objects of a BACnet device."""
+        app = None
+        try:
+            # Simulate argparse.Namespace as used in CLI
+            args = Namespace(
+                address=address_with_mask,
+                loggers=False,
+                debug=None,
+                color=None,
+                route_aware=None,
+                name="Excelsior",
+                instance=999,
+                network=0,
+                vendoridentifier=999,
+                foreign=None,
+                ttl=30,
+                bbmd=None,
+            )
+            app = Application.from_args(args)
+            print(f"Getting objects for device {device_identifier} at {device_address}")
+            object_list = await self.object_identifiers(
+                app, device_address, device_identifier
+            )
+            # print(f"Object list: {object_list}")
+            objects = {}
             for object_identifier in object_list:
-                object_class = vendor_info.get_object_class(object_identifier[0])
-                if _debug:
-                    _log.debug("    - object_class: %r", object_class)
+                object_class = get_vendor_info(
+                    vendor_id
+                ).get_object_class(object_identifier[0])
                 if object_class is None:
-                    if show_warnings:
-                        sys.stderr.write(f"unknown object type: {object_identifier}\n")
+                    sys.stderr.write(f"unknown object type: {object_identifier}\n")
                     continue
-
-                print(f"    {object_identifier}:")
+                print(f"Object: {object_identifier} ({object_class})")
+                objects[str(object_identifier)] = {
+                    "object_type": str(object_class),
+                    "properties": {},
+                }
 
                 # read the property list
                 property_list: list[PropertyIdentifier] | None = None
                 try:
                     property_list = await app.read_property_multiple(
-                        device_address,
-                        (object_identifier, '8')
+                        device_address, (object_identifier, "8")
                     )
 
-                    property: (ObjectIdentifier, PropertyIdentifier, int | None, str | int | None)
-                    for property in property_list:
-                        print(f"    - {property[1]}: {property[3]}")
-                    if _debug:
-                        _log.debug("    - property_list: %r", property_list)
+                    propertie: (ObjectIdentifier, PropertyIdentifier, int | None, str | int | None)
+                    for propertie in property_list:
+                        objects[str(object_identifier)]["properties"][
+                            str(propertie[1])
+                        ] = propertie[3]
                 except ErrorRejectAbortNack as err:
-                    if show_warnings:
-                        sys.stderr.write(
-                            f"{object_identifier} property-list error: {err}\n"
-                        )
-    finally:
-        if app:
-            app.close()
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
- """
+                    sys.stderr.write(
+                        f"{object_identifier} property-list error: {err}\n"
+                    )
+            return objects
+        except Exception as err:
+            print("BACnet getObjects failed: %s", err)
+            raise ConfigEntryNotReady from err
+        finally:
+            # ensure the application is stopped
+            if app is not None:
+                app.close()
