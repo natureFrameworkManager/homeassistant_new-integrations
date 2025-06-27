@@ -1,0 +1,214 @@
+DEBUG:__main__:args: Namespace(loggers=False, debug=[], color=None, route_aware=None, name='Excelsior', instance=999, network=0, address='192.168.1.104/24', vendoridentifier=999, foreign=None, ttl=30, bbmd=None, low_limit=0, high_limit=1000)
+DEBUG:__main__:app: <bacpypes3.app.Application object at 0x7304b3431940>
+DEBUG:__main__:    - i_am: <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b34330e0>
+    <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b34330e0>
+        pduSource = <IPv4Address 192.168.1.100>
+        pduDestination = <GlobalBroadcast *:*>
+        pduExpectingReply = False
+        pduNetworkPriority = 0
+        apduType = 1
+        apduService = 0
+        iAmDeviceIdentifier = (<ObjectType: device>, 100)
+        maxAPDULengthAccepted = 1476
+        segmentationSupported = <Segmentation: segmented-both>
+        vendorID = 39
+        pduData = x''
+DEBUG:__main__:    - i_am: <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b3411bd0>
+    <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b3411bd0>
+        pduSource = <IPv4Address 192.168.1.111>
+        pduDestination = <GlobalBroadcast *:*>
+        pduExpectingReply = False
+        pduNetworkPriority = 0
+        apduType = 1
+        apduService = 0
+        iAmDeviceIdentifier = (<ObjectType: device>, 11)
+        maxAPDULengthAccepted = 480
+        segmentationSupported = <Segmentation: segmented-both>
+        vendorID = 39
+        pduData = x''
+DEBUG:__main__:    - i_am: <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b3410f50>
+    <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b3410f50>
+        pduSource = <IPv4Address 192.168.1.129>
+        pduDestination = <GlobalBroadcast *:*>
+        pduExpectingReply = False
+        pduNetworkPriority = 0
+        apduType = 1
+        apduService = 0
+        iAmDeviceIdentifier = (<ObjectType: device>, 29)
+        maxAPDULengthAccepted = 480
+        segmentationSupported = <Segmentation: segmented-both>
+        vendorID = 39
+        pduData = x''
+DEBUG:__main__:    - i_am: <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b352ad70>
+    <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b352ad70>
+        pduSource = <IPv4Address 192.168.1.126>
+        pduDestination = <GlobalBroadcast *:*>
+        pduExpectingReply = False
+        pduNetworkPriority = 0
+        apduType = 1
+        apduService = 0
+        iAmDeviceIdentifier = (<ObjectType: device>, 26)
+        maxAPDULengthAccepted = 480
+        segmentationSupported = <Segmentation: segmented-both>
+        vendorID = 39
+        pduData = x''
+DEBUG:__main__:    - i_am: <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b352b5c0>
+    <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b352b5c0>
+        pduSource = <IPv4Address 192.168.1.125>
+        pduDestination = <GlobalBroadcast *:*>
+        pduExpectingReply = False
+        pduNetworkPriority = 0
+        apduType = 1
+        apduService = 0
+        iAmDeviceIdentifier = (<ObjectType: device>, 25)
+        maxAPDULengthAccepted = 480
+        segmentationSupported = <Segmentation: segmented-both>
+        vendorID = 39
+        pduData = x''
+DEBUG:__main__:    - i_am: <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b32ee330>
+    <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b32ee330>
+        pduSource = <IPv4Address 192.168.1.118>
+        pduDestination = <GlobalBroadcast *:*>
+        pduExpectingReply = False
+        pduNetworkPriority = 0
+        apduType = 1
+        apduService = 0
+        iAmDeviceIdentifier = (<ObjectType: device>, 18)
+        maxAPDULengthAccepted = 480
+        segmentationSupported = <Segmentation: segmented-both>
+        vendorID = 39
+        pduData = x''
+DEBUG:__main__:    - i_am: <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b3839f20>
+    <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b3839f20>
+        pduSource = <IPv4Address 192.168.1.123>
+        pduDestination = <GlobalBroadcast *:*>
+        pduExpectingReply = False
+        pduNetworkPriority = 0
+        apduType = 1
+        apduService = 0
+        iAmDeviceIdentifier = (<ObjectType: device>, 23)
+        maxAPDULengthAccepted = 480
+        segmentationSupported = <Segmentation: segmented-both>
+        vendorID = 39
+        pduData = x''
+DEBUG:__main__:    - i_am: <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b383a470>
+    <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b383a470>
+        pduSource = <IPv4Address 192.168.1.124>
+        pduDestination = <GlobalBroadcast *:*>
+        pduExpectingReply = False
+        pduNetworkPriority = 0
+        apduType = 1
+        apduService = 0
+        iAmDeviceIdentifier = (<ObjectType: device>, 24)
+        maxAPDULengthAccepted = 480
+        segmentationSupported = <Segmentation: segmented-both>
+        vendorID = 39
+        pduData = x''
+DEBUG:__main__:    - i_am: <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b3811050>
+    <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b3811050>
+        pduSource = <IPv4Address 192.168.1.112>
+        pduDestination = <GlobalBroadcast *:*>
+        pduExpectingReply = False
+        pduNetworkPriority = 0
+        apduType = 1
+        apduService = 0
+        iAmDeviceIdentifier = (<ObjectType: device>, 12)
+        maxAPDULengthAccepted = 480
+        segmentationSupported = <Segmentation: segmented-both>
+        vendorID = 39
+        pduData = x''
+DEBUG:__main__:    - i_am: <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b3811550>
+    <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b3811550>
+        pduSource = <IPv4Address 192.168.1.128>
+        pduDestination = <GlobalBroadcast *:*>
+        pduExpectingReply = False
+        pduNetworkPriority = 0
+        apduType = 1
+        apduService = 0
+        iAmDeviceIdentifier = (<ObjectType: device>, 28)
+        maxAPDULengthAccepted = 480
+        segmentationSupported = <Segmentation: segmented-both>
+        vendorID = 39
+        pduData = x''
+DEBUG:__main__:    - i_am: <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b37f5a90>
+    <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b37f5a90>
+        pduSource = <IPv4Address 192.168.1.113>
+        pduDestination = <GlobalBroadcast *:*>
+        pduExpectingReply = False
+        pduNetworkPriority = 0
+        apduType = 1
+        apduService = 0
+        iAmDeviceIdentifier = (<ObjectType: device>, 13)
+        maxAPDULengthAccepted = 480
+        segmentationSupported = <Segmentation: segmented-both>
+        vendorID = 39
+        pduData = x''
+DEBUG:__main__:    - i_am: <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b37f58b0>
+    <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b37f58b0>
+        pduSource = <IPv4Address 192.168.1.117>
+        pduDestination = <GlobalBroadcast *:*>
+        pduExpectingReply = False
+        pduNetworkPriority = 0
+        apduType = 1
+        apduService = 0
+        iAmDeviceIdentifier = (<ObjectType: device>, 17)
+        maxAPDULengthAccepted = 480
+        segmentationSupported = <Segmentation: segmented-both>
+        vendorID = 39
+        pduData = x''
+DEBUG:__main__:    - i_am: <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b347c830>
+    <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b347c830>
+        pduSource = <RemoteStation 42:3>
+        pduDestination = <GlobalBroadcast *:*>
+        pduExpectingReply = False
+        pduNetworkPriority = 0
+        apduType = 1
+        apduService = 0
+        iAmDeviceIdentifier = (<ObjectType: device>, 103)
+        maxAPDULengthAccepted = 480
+        segmentationSupported = <Segmentation: no-segmentation>
+        vendorID = 396
+        pduData = x''
+DEBUG:__main__:    - i_am: <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b347c750>
+    <bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) instance at 0x7304b347c750>
+        pduSource = <IPv4Address 192.168.1.127>
+        pduDestination = <GlobalBroadcast *:*>
+        pduExpectingReply = False
+        pduNetworkPriority = 0
+        apduType = 1
+        apduService = 0
+        iAmDeviceIdentifier = (<ObjectType: device>, 27)
+        maxAPDULengthAccepted = 480
+        segmentationSupported = <Segmentation: segmented-both>
+        vendorID = 39
+        pduData = x''
+
+----
+
+device,100 @ 192.168.1.100
+device,11 @ 192.168.1.111
+    description: BACnet Device
+device,29 @ 192.168.1.129
+    description: BACnet Device
+device,26 @ 192.168.1.126
+    description: DDC420
+device,25 @ 192.168.1.125
+    description: ESS16-2 - DDC420 - R.U.01/U.02/U.09-11/R.1.01/R.1.02/R.2.01
+device,18 @ 192.168.1.118
+    description: ESS03-2 - DDC420 - R.1.02a/1.03a
+device,23 @ 192.168.1.123
+    description: ESS13-1 - DDC420 - R.E.21/1.19/1.20/2.15
+device,24 @ 192.168.1.124
+    description: ESS16-1 - DDC420 - CAN BUS Defekt (Auf Zentrale 25 umgelegt)
+device,12 @ 192.168.1.112
+    description: ESS01-1 - DDC420 - R.3.02/3.03/3.04/3.06/3.07
+device,28 @ 192.168.1.128
+    description: DDC420
+device,13 @ 192.168.1.113
+    description: ESS01-2 - DDC420 - R.2.02/2.03/2.04/2.05/2.06
+device,17 @ 192.168.1.117
+    description: ESS03-1 - DDC420 - R.1.05/1.06/1.07/1.03/1.04
+device,103 @ 42:3
+    description: EnOcean BACnet Gateway
+device,27 @ 192.168.1.127
+    description: DDC420

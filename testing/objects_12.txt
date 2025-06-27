@@ -1,0 +1,296 @@
+    device,12:
+        object-name: DDC420_#0
+        description: ESS01-1 - DDC420 - R.3.02/3.03/3.04/3.06/3.07
+    binary-value,2796229:
+        object-name: //000/01/01/M.02/6/FB_BV.01
+        description: Hand Einfluß aktiv
+        present-value: inactive
+    binary-value,2796232:
+        object-name: //000/01/01/M.04/6/FB_BV.01
+        description: LED TAG
+        present-value: inactive
+    binary-value,2796204:
+        object-name: //000/03/01/S118.01/C.01/BACInfo/FB_BV.01
+        description: BACnet Info
+        present-value: active
+    schedule,2796204:
+        object-name: //000/03/01/S118.01/C.01
+        description: Zeitplan
+        present-value: <bacpypes3.constructeddata.AnyAtomic object at 0x75051e98ef90>
+    analog-value,2796212:
+        object-name: //000/01/01/S337.01/5100/FB_AV.01
+        description: Raumtemp. Sollwert Tag
+        present-value: 21.0
+        units: degrees-celsius
+    analog-value,2796213:
+        object-name: //000/01/01/S337.01/5101/FB_AV.01
+        description: Raumtemp. Sollwert aktuell
+        present-value: 15.0
+        units: degrees-celsius
+    analog-value,2796211:
+        object-name: //000/01/01/S337.01/5102/FB_AV.01
+        description: Raumtemp. Messwert
+        present-value: 28.227638244628906
+        units: degrees-celsius
+    analog-value,2796215:
+        object-name: //000/01/01/S337.01/5105/FB_AV.01
+        description: Regelabweichung
+        present-value: 13.173494338989258
+        units: degrees-kelvin
+    analog-value,2796214:
+        object-name: //000/01/01/S337.01/5107/FB_AV.01
+        description: Raumtemp. Sollwert Nacht
+        present-value: 15.0
+        units: degrees-celsius
+    binary-value,2796216:
+        object-name: //000/01/01/S337.01/5108/FB_BV.01
+        description: Raumtemp. Sollwert Nacht aktiv
+        present-value: inactive
+    analog-value,2796216:
+        object-name: //000/01/01/S337.01/5110/FB_AV.01
+        description: Heizventil Anforderung
+        present-value: 0.0
+        units: percent
+    binary-value,2796217:
+        object-name: //000/01/01/S337.01/5178/FB_BV.01
+        description: Regelung Tag aktiv
+        present-value: inactive
+    analog-value,2796210:
+        object-name: //000/01/01/S337.01/5328/FB_AV.01
+        description: Heizventil Handeinfluß
+        present-value: 0.0
+        units: percent
+    binary-value,2796228:
+        object-name: //000/02/01/M.02/6/FB_BV.01
+        description: Hand Einfluß aktiv
+        present-value: inactive
+    binary-value,2796233:
+        object-name: //000/02/01/M.03/6/FB_BV.01
+        description: LED TAG
+        present-value: inactive
+    binary-value,2796206:
+        object-name: //000/02/01/S118.01/C.01/BACInfo/FB_BV.01
+        description: BACnet Info
+        present-value: active
+    schedule,2796206:
+        object-name: //000/02/01/S118.01/C.01
+        description: Zeitplan
+        present-value: <bacpypes3.constructeddata.AnyAtomic object at 0x75051e961e50>
+    analog-value,2796205:
+        object-name: //000/02/01/S337.01/5100/FB_AV.01
+        description: Raumtemp. Sollwert Tag
+        present-value: 21.0
+        units: degrees-celsius
+    analog-value,2796206:
+        object-name: //000/02/01/S337.01/5101/FB_AV.01
+        description: Raumtemp. Sollwert aktuell
+        present-value: 15.0
+        units: degrees-celsius
+    analog-value,2796204:
+        object-name: //000/02/01/S337.01/5102/FB_AV.01
+        description: Raumtemp. Messwert
+        present-value: 26.913166046142578
+        units: degrees-celsius
+    analog-value,2796208:
+        object-name: //000/02/01/S337.01/5105/FB_AV.01
+        description: Regelabweichung
+        present-value: 11.913166046142578
+        units: degrees-kelvin
+    analog-value,2796207:
+        object-name: //000/02/01/S337.01/5107/FB_AV.01
+        description: Raumtemp. Sollwert Nacht
+        present-value: 15.0
+        units: degrees-celsius
+    binary-value,2796214:
+        object-name: //000/02/01/S337.01/5108/FB_BV.01
+        description: Raumtemp. Sollwert Nacht aktiv
+        present-value: inactive
+    analog-value,2796209:
+        object-name: //000/02/01/S337.01/5110/FB_AV.01
+        description: Heizventil Anforderung
+        present-value: 0.0
+        units: percent
+    binary-value,2796215:
+        object-name: //000/02/01/S337.01/5178/FB_BV.01
+        description: Regelung Tag aktiv
+        present-value: inactive
+    analog-value,2796203:
+        object-name: //000/02/01/S337.01/5328/FB_AV.01
+        description: Heizventil Handeinfluß
+        present-value: 0.0
+        units: percent
+    binary-value,2796230:
+        object-name: //000/03/01/M.02/6/FB_BV.01
+        description: Hand Einfluß aktiv
+        present-value: inactive
+    binary-value,2796234:
+        object-name: //000/03/01/M.03/6/FB_BV.01
+        description: LED TAG
+        present-value: inactive
+    analog-value,2796219:
+        object-name: //000/03/01/S337.01/5100/FB_AV.01
+        description: Raumtemp. Sollwert Tag
+        present-value: 24.0
+        units: degrees-celsius
+    analog-value,2796220:
+        object-name: //000/03/01/S337.01/5101/FB_AV.01
+        description: Raumtemp. Sollwert aktuell
+        present-value: 15.0
+        units: degrees-celsius
+    analog-value,2796218:
+        object-name: //000/03/01/S337.01/5102/FB_AV.01
+        description: Raumtemp. Messwert
+        present-value: 26.679611206054688
+        units: degrees-celsius
+    analog-value,2796222:
+        object-name: //000/03/01/S337.01/5105/FB_AV.01
+        description: Regelabweichung
+        present-value: 11.679611206054688
+        units: degrees-kelvin
+    analog-value,2796221:
+        object-name: //000/03/01/S337.01/5107/FB_AV.01
+        description: Raumtemp. Sollwert Nacht
+        present-value: 15.0
+        units: degrees-celsius
+    binary-value,2796218:
+        object-name: //000/03/01/S337.01/5108/FB_BV.01
+        description: Raumtemp. Sollwert Nacht aktiv
+        present-value: inactive
+    analog-value,2796223:
+        object-name: //000/03/01/S337.01/5110/FB_AV.01
+        description: Heizventil Anforderung
+        present-value: 0.0
+        units: percent
+    binary-value,2796219:
+        object-name: //000/03/01/S337.01/5178/FB_BV.01
+        description: Regelung Tag aktiv
+        present-value: inactive
+    analog-value,2796217:
+        object-name: //000/03/01/S337.01/5328/FB_AV.01
+        description: Heizventil Handeinfluß
+        present-value: 0.0
+        units: percent
+    binary-value,2796231:
+        object-name: //000/04/01/M.02/6/FB_BV.01
+        description: Hand Einfluß aktiv
+        present-value: inactive
+    binary-value,2796235:
+        object-name: //000/04/01/M.03/6/FB_BV.01
+        description: LED TAG
+        present-value: inactive
+    binary-value,2796223:
+        object-name: //000/04/01/S118.01/C.01/BACInfo/FB_BV.01
+        description: BACnet Info
+        present-value: active
+    schedule,2796214:
+        object-name: //000/04/01/S118.01/C.01
+        description: Zeitplan
+        present-value: <bacpypes3.constructeddata.AnyAtomic object at 0x75051e961950>
+    analog-value,2796226:
+        object-name: //000/04/01/S337.01/5100/FB_AV.01
+        description: Raumtemp. Sollwert Tag
+        present-value: 22.0
+        units: degrees-celsius
+    analog-value,2796227:
+        object-name: //000/04/01/S337.01/5101/FB_AV.01
+        description: Raumtemp. Sollwert aktuell
+        present-value: 15.0
+        units: degrees-celsius
+    analog-value,2796225:
+        object-name: //000/04/01/S337.01/5102/FB_AV.01
+        description: Raumtemp. Messwert
+        present-value: 26.531267166137695
+        units: degrees-celsius
+    analog-value,2796229:
+        object-name: //000/04/01/S337.01/5105/FB_AV.01
+        description: Regelabweichung
+        present-value: 11.584291458129883
+        units: degrees-kelvin
+    analog-value,2796228:
+        object-name: //000/04/01/S337.01/5107/FB_AV.01
+        description: Raumtemp. Sollwert Nacht
+        present-value: 15.0
+        units: degrees-celsius
+    binary-value,2796221:
+        object-name: //000/04/01/S337.01/5108/FB_BV.01
+        description: Raumtemp. Sollwert Nacht aktiv
+        present-value: inactive
+    analog-value,2796230:
+        object-name: //000/04/01/S337.01/5110/FB_AV.01
+        description: Heizventil Anforderung
+        present-value: 0.0
+        units: percent
+    binary-value,2796222:
+        object-name: //000/04/01/S337.01/5178/FB_BV.01
+        description: Regelung Tag aktiv
+        present-value: inactive
+    analog-value,2796224:
+        object-name: //000/04/01/S337.01/5328/FB_AV.01
+        description: Heizventil Handeinfluß
+        present-value: 0.0
+        units: percent
+    binary-value,2796227:
+        object-name: //000/05/01/M.02/6/FB_BV.01
+        description: Hand Einfluß aktiv
+        present-value: inactive
+    binary-value,2796236:
+        object-name: //000/05/01/M.03/6/FB_BV.01
+        description: LED TAG
+        present-value: inactive
+    binary-value,2796226:
+        object-name: //000/05/01/S118.01/C.01/BACInfo/FB_BV.01
+        description: BACnet Info
+        present-value: active
+    schedule,2796215:
+        object-name: //000/05/01/S118.01/C.01
+        description: Zeitplan
+        present-value: <bacpypes3.constructeddata.AnyAtomic object at 0x75051ea57490>
+    analog-value,2796233:
+        object-name: //000/05/01/S337.01/5100/FB_AV.01
+        description: Raumtemp. Sollwert Tag
+        present-value: 20.0
+        units: degrees-celsius
+    analog-value,2796234:
+        object-name: //000/05/01/S337.01/5101/FB_AV.01
+        description: Raumtemp. Sollwert aktuell
+        present-value: 17.0
+        units: degrees-celsius
+    analog-value,2796232:
+        object-name: //000/05/01/S337.01/5102/FB_AV.01
+        description: Raumtemp. Messwert
+        present-value: 27.531410217285156
+        units: degrees-celsius
+    analog-value,2796236:
+        object-name: //000/05/01/S337.01/5105/FB_AV.01
+        description: Regelabweichung
+        present-value: 10.53286361694336
+        units: degrees-kelvin
+    analog-value,2796235:
+        object-name: //000/05/01/S337.01/5107/FB_AV.01
+        description: Raumtemp. Sollwert Nacht
+        present-value: 17.0
+        units: degrees-celsius
+    binary-value,2796224:
+        object-name: //000/05/01/S337.01/5108/FB_BV.01
+        description: Raumtemp. Sollwert Nacht aktiv
+        present-value: inactive
+    analog-value,2796237:
+        object-name: //000/05/01/S337.01/5110/FB_AV.01
+        description: Heizventil Anforderung
+        present-value: 0.0
+        units: percent
+    binary-value,2796225:
+        object-name: //000/05/01/S337.01/5178/FB_BV.01
+        description: Regelung Tag aktiv
+        present-value: inactive
+    analog-value,2796231:
+        object-name: //000/05/01/S337.01/5328/FB_AV.01
+        description: Heizventil Handeinfluß
+        present-value: 0.0
+        units: percent
+    file,1000001:
+        object-name: Config Data
+        description: ESS01-1 - DDC420 - R.3.02/3.03/3.04/3.06/3.07
+    file,1000002:
+        object-name: Plant Images
+        description: ESS01-1 - DDC420 - R.3.02/3.03/3.04/3.06/3.07
