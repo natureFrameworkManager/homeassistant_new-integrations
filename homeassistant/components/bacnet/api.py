@@ -69,13 +69,13 @@ class BACnetAPI:
 
         return object_list
 
-    async def discoverDevices(self, address: str, port: int) -> list:
+    async def discoverDevices(self, address_with_mask: str = "192.168.1.104/24") -> list:
         """Discover BACnet devices on the network."""
         app = None
         try:
             # Simulate argparse.Namespace as used in CLI
             args = Namespace(
-                address="192.168.1.104/24",
+                address=address_with_mask,
                 loggers=False,
                 debug=None,
                 color=None,
@@ -93,22 +93,28 @@ class BACnetAPI:
             # run the query
             i_ams = await app.who_is(0, 1000)
             for i_am in i_ams:
-                print("i_am: %r", i_am) # bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU)
+                # print(vars(i_am)) # bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) // {'pduSource': <IPv4Address 192.168.1.113>, 'pduDestination': <GlobalBroadcast *:*>, 'pduExpectingReply': False, 'pduNetworkPriority': 0, 'pduUserData': None, 'pduData': bytearray(b''), 'apduType': 1, 'apduService': 0, 'segmentationSupported': <Segmentation: segmented-both>, 'vendorID': 39, 'iAmDeviceIdentifier': (<ObjectType: device>, 13), 'maxAPDULengthAccepted': 480}
                 device_address: Address = i_am.pduSource
                 device_identifier: ObjectIdentifier = i_am.iAmDeviceIdentifier
                 vendor_info = get_vendor_info(i_am.vendorID)
-                print(f"{device_identifier} @ {device_address}")
 
                 try:
                     device_description: str = await app.read_property(
                         device_address, device_identifier, "description"
                     )
-                    print(f"    description: {device_description}")
 
                 except ErrorRejectAbortNack as err:
+                    device_description: str = "Unknown"
                     sys.stderr.write(f"{device_identifier} description error: {err}\n")
-            return devices
-
+                devices.append({
+                    "device_address": str(device_address),
+                    "device_identifier": str(device_identifier),
+                    "vendor_id": i_am.vendorID,
+                    "vendor_info": vendor_info,
+                    "description": device_description,
+                    "maxAPDULengthAccepted": i_am.maxAPDULengthAccepted,
+                })
+            return devices  # noqa: TRY300
         except Exception as err:
             _LOGGER.error("BACnet discovery failed: %s", err)
             raise ConfigEntryNotReady from err
