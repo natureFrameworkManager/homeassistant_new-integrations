@@ -12,6 +12,9 @@ AIOSomecomfort==0.0.32
 # homeassistant.components.adax
 Adax-local==0.1.5
 
+# homeassistant.components.bacnet
+BAC0==2025.6.10
+
 # homeassistant.components.doorbird
 DoorBirdPy==3.0.8
 
