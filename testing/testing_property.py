@@ -1,21 +1,17 @@
-"""
-Simple example that sends a Who-Is request for a device and when it responds
+"""Simple example that sends a Who-Is request for a device and when it responds
 reads some interesting properties of the objects in the device.
 """
 
-import sys
 import asyncio
+import sys
 
-from typing import List, Optional
-
-from bacpypes3.debugging import bacpypes_debugging, ModuleLogger
+from bacpypes3.apdu import AbortPDU, AbortReason, ErrorRejectAbortNack
+from bacpypes3.app import Application
 from bacpypes3.argparse import SimpleArgumentParser
-
+from bacpypes3.basetypes import PropertyIdentifier
+from bacpypes3.debugging import ModuleLogger, bacpypes_debugging
 from bacpypes3.pdu import Address
 from bacpypes3.primitivedata import ObjectIdentifier
-from bacpypes3.basetypes import PropertyIdentifier
-from bacpypes3.apdu import AbortReason, AbortPDU, ErrorRejectAbortNack
-from bacpypes3.app import Application
 from bacpypes3.vendor import get_vendor_info
 
 # some debugging
@@ -29,9 +25,8 @@ show_warnings: bool = False
 @bacpypes_debugging
 async def object_identifiers(
     app: Application, device_address: Address, device_identifier: ObjectIdentifier
-) -> List[ObjectIdentifier]:
-    """
-    Read the entire object list from a device at once, or if that fails, read
+) -> list[ObjectIdentifier]:
+    """Read the entire object list from a device at once, or if that fails, read
     the object identifiers one at a time.
     """
 
@@ -127,7 +122,7 @@ async def main() -> None:
             print(f"    {object_identifier}:")
 
             # read the property list
-            property_list: Optional[List[PropertyIdentifier]] = None
+            property_list: list[PropertyIdentifier] | None = None
             try:
                 property_list = await app.read_property(
                     device_address, object_identifier, "property-list"

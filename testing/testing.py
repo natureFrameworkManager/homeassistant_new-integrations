@@ -1,22 +1,17 @@
-"""
-Simple example that sends a Who-Is request and prints out the device identifier,
+"""Simple example that sends a Who-Is request and prints out the device identifier,
 address, and description for the devices that respond.
 """
 
-import sys
 import asyncio
+import sys
 
-from typing import List, Optional
-
-from bacpypes3.debugging import bacpypes_debugging, ModuleLogger
+from bacpypes3.apdu import AbortPDU, AbortReason, ErrorRejectAbortNack
+from bacpypes3.app import Application
 from bacpypes3.argparse import SimpleArgumentParser
-
+from bacpypes3.debugging import ModuleLogger, bacpypes_debugging
 from bacpypes3.pdu import Address
 from bacpypes3.primitivedata import ObjectIdentifier, PropertyIdentifier
-from bacpypes3.apdu import ErrorRejectAbortNack
-from bacpypes3.app import Application
 from bacpypes3.vendor import get_vendor_info
-from bacpypes3.apdu import AbortReason, AbortPDU, ErrorRejectAbortNack
 
 # some debugging
 _debug = 0
@@ -28,9 +23,8 @@ show_warnings: bool = True
 @bacpypes_debugging
 async def object_identifiers(
     app: Application, device_address: Address, device_identifier: ObjectIdentifier
-) -> List[ObjectIdentifier]:
-    """
-    Read the entire object list from a device at once, or if that fails, read
+) -> list[ObjectIdentifier]:
+    """Read the entire object list from a device at once, or if that fails, read
     the object identifiers one at a time.
     """
 
@@ -135,7 +129,7 @@ async def main() -> None:
                 print(f"    {object_identifier}:")
 
                 # read the property list
-                property_list: Optional[List[PropertyIdentifier]] = None
+                property_list: list[PropertyIdentifier] | None = None
                 try:
                     property_list = await app.read_property_multiple(
                         device_address,
