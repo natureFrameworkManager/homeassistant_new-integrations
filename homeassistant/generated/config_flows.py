@@ -81,6 +81,7 @@ FLOWS = {
         "azure_devops",
         "azure_event_hub",
         "azure_storage",
+        "bacnet",
         "baf",
         "balboa",
         "bang_olufsen",
