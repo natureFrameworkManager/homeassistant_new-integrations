@@ -12,6 +12,15 @@ from homeassistant.helpers import config_entry_flow
 from .const import DOMAIN
 
 
+def get_set_properties(obj: object) -> dict[str, object]:
+    """Return a dict of all set (non-None) properties for a BACnet object."""
+    # BACpypes3 objects have _elements with property names
+    return {
+        attr: getattr(obj, attr)
+        for attr in obj._elements.keys()
+        if getattr(obj, attr, None) is not None
+    }
+
 class BacnetConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Bacnet."""
 
@@ -36,7 +45,7 @@ class BacnetConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 objects = await api.getObjects(
                     self.address, self.device_identifier, self.vendor_id
                 )
-                print("BACnet objects:", objects)
+                parsed_objects = api.parseObjects(objects)
                 serial = self.device_identifier
                 if serial is not None:
                     unique_id = serial
@@ -46,7 +55,7 @@ class BacnetConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(
                     title=self.device_identifier,
                     data={
-                        "objects": objects,
+                        "objects": parsed_objects,
                         "device_address": self.address,
                         "device_identifier": self.device_identifier,
                         "vendor_id": self.vendor_id,

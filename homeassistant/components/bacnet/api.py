@@ -3,11 +3,13 @@
 from argparse import Namespace
 import asyncio
 import logging
+import re
 import sys
 from typing import Any
 
 from bacpypes3.apdu import AbortPDU, AbortReason, ErrorRejectAbortNack
 from bacpypes3.app import Application
+from bacpypes3.object import AnalogValueObject, BinaryValueObject, DeviceObject
 from bacpypes3.pdu import Address
 from bacpypes3.primitivedata import ObjectIdentifier, PropertyIdentifier
 from bacpypes3.vendor import get_vendor_info
@@ -20,12 +22,19 @@ _LOGGER = logging.getLogger(__name__)
 class BACnetAPI:
     """API for interacting with BACnet devices."""
 
+    def get_set_properties(self, obj: object) -> dict[str, object]:
+        """Return a dict of all set (non-None) properties for a BACnet object."""
+        # BACpypes3 objects have _elements with property names
+        return {
+            attr: getattr(obj, attr)
+            for attr in obj._elements.keys()
+            if getattr(obj, attr, None) is not None
+        }
+
     async def object_identifiers(
         self, app: Application, device_address: Address, device_identifier: ObjectIdentifier
     ) -> list[ObjectIdentifier]:
-        """Read the entire object list from a device at once, or if that fails, read
-        the object identifiers one at a time.
-        """
+        """Read the entire object list from a device at once, or if that fails, read the object identifiers one at a time."""
 
         # try reading the whole thing at once, but it might be too big and
         # segmentation isn't supported
@@ -68,6 +77,86 @@ class BACnetAPI:
             )
 
         return object_list
+
+    def create_bacnet_object_from_properties(
+        self,
+        object_class: type,
+        property_list: list[tuple],
+    ) -> object:
+        """Create a BACnet object instance of the given class from a property list."""
+        valid_attrs = set(object_class._elements.keys())
+        props = {}
+
+        for _, property_identifier, _, value in property_list:
+            # BACnet property identifiers have an 'attr' property for the Python attribute name
+            attr_name = getattr(property_identifier, "attr", None)
+            if not attr_name:
+                attr_name = "".join(
+                    word.capitalize() if i else word
+                    for i, word in enumerate(str(property_identifier).split("-"))
+                )
+            if attr_name in valid_attrs:
+                expected_type = object_class._elements[attr_name]
+                try:
+                    if value is not None:
+                        value = expected_type.cast(value)
+                    props[attr_name] = value
+                except Exception as err:
+                    sys.stderr.write(
+                        f"Warning: Could not cast {attr_name}={value!r} to {expected_type}: {err}"
+                    )
+
+        return object_class(**props)
+
+    def parseObjects(
+        self,
+        objects: dict[str, Any],
+    ) -> Any:
+        """Parse the BACnet objects and return a structured dictionary."""
+        return_data = {
+            "could_not_parse": {},
+            "not_supported": {},
+        }
+        for (identifier, object_) in objects.items():
+            if isinstance(object_, (BinaryValueObject, AnalogValueObject)):
+                split_name = re.split(r'\/+', object_.objectName)
+                if len(split_name) > 1 and split_name[4] == "S337.01":
+                    if return_data.get("heating") is None:
+                        return_data["heating"] = {}
+                    if return_data["heating"].get(int(split_name[2])) is None:
+                        return_data["heating"][int(split_name[2])] = {
+                            "current_temp": Any,
+                            "current_target_temp": Any,
+                            "day_target_temp": Any,
+                            "night_target_temp": Any,
+                            "night_target_temp_active": Any,
+                            "day_control_active": Any,
+                            "hand_control_request": Any,
+                            "hand_control_influence": Any,
+                        }
+                    if split_name[5] == "5100":
+                        return_data["heating"][int(split_name[2])]["day_target_temp"] = object_.presentValue
+                    if split_name[5] == "5101":
+                        return_data["heating"][int(split_name[2])]["current_target_temp"] = object_.presentValue
+                    if split_name[5] == "5102":
+                        return_data["heating"][int(split_name[2])]["current_temp"] = object_.presentValue
+                    if split_name[5] == "5107":
+                        return_data["heating"][int(split_name[2])]["night_target_temp"] = object_.presentValue
+                    if split_name[5] == "5108":
+                        return_data["heating"][int(split_name[2])]["night_target_temp_active"] = object_.presentValue
+                    if split_name[5] == "5110":
+                        return_data["heating"][int(split_name[2])]["hand_control_request"] = object_.presentValue
+                    if split_name[5] == "5178":
+                        return_data["heating"][int(split_name[2])]["day_control_active"] = object_.presentValue
+                    if split_name[5] == "5328":
+                        return_data["heating"][int(split_name[2])]["hand_control_influence"] = object_.presentValue
+                else:
+                    return_data["could_not_parse"][identifier] = object_
+            if isinstance(object_, DeviceObject):
+                return_data["device"] = object_
+            else:
+                return_data["not_supported"][identifier] = object_
+        return return_data
 
     async def discoverDevices(
         self, address_with_mask: str = "192.168.1.104/24"
@@ -167,10 +256,6 @@ class BACnetAPI:
                     sys.stderr.write(f"unknown object type: {object_identifier}\n")
                     continue
                 print(f"Object: {object_identifier} ({object_class})")
-                objects[str(object_identifier)] = {
-                    "object_type": str(object_class),
-                    "properties": {},
-                }
 
                 # read the property list
                 property_list: list[PropertyIdentifier] | None = None
@@ -179,11 +264,7 @@ class BACnetAPI:
                         device_address, (object_identifier, "8")
                     )
 
-                    propertie: (ObjectIdentifier, PropertyIdentifier, int | None, str | int | None)
-                    for propertie in property_list:
-                        objects[str(object_identifier)]["properties"][
-                            str(propertie[1])
-                        ] = propertie[3]
+                    objects[str(object_identifier)] = self.create_bacnet_object_from_properties(object_class, property_list)
                 except ErrorRejectAbortNack as err:
                     sys.stderr.write(
                         f"{object_identifier} property-list error: {err}\n"

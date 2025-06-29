@@ -12,6 +12,7 @@ from bacpypes3.debugging import ModuleLogger, bacpypes_debugging
 from bacpypes3.pdu import Address
 from bacpypes3.primitivedata import ObjectIdentifier, PropertyIdentifier
 from bacpypes3.vendor import get_vendor_info
+from bacpypes3.object import BinaryValueObject
 
 # some debugging
 _debug = 0
@@ -73,6 +74,47 @@ async def object_identifiers(
 
     return object_list
 
+
+def create_bacnet_object_from_properties(
+    object_class: type,
+    property_list: list[tuple],
+) -> object:
+    """Create a BACnet object instance of the given class from a property list."""
+    valid_attrs = set(object_class._elements.keys())
+    props = {}
+
+    for _, property_identifier, _, value in property_list:
+        # BACnet property identifiers have an 'attr' property for the Python attribute name
+        attr_name = getattr(property_identifier, "attr", None)
+        if not attr_name:
+            attr_name = "".join(
+                word.capitalize() if i else word
+                for i, word in enumerate(str(property_identifier).split("-"))
+            )
+        if attr_name in valid_attrs:
+            expected_type = object_class._elements[attr_name]
+            try:
+                if value is not None:
+                    value = expected_type.cast(value)
+                props[attr_name] = value
+            except Exception as err:
+                if show_warnings:
+                    print(
+                        f"Warning: Could not cast {attr_name}={value!r} to {expected_type}: {err}"
+                    )
+
+    return object_class(**props)
+
+
+def get_set_properties(obj: object) -> dict[str, object]:
+    """Return a dict of all set (non-None) properties for a BACnet object."""
+    # BACpypes3 objects have _elements with property names
+    return {
+        attr: getattr(obj, attr)
+        for attr in obj._elements.keys()
+        if getattr(obj, attr, None) is not None
+    }
+
 async def main() -> None:
     app = None
     try:
@@ -133,15 +175,30 @@ async def main() -> None:
                 property_list: list[PropertyIdentifier] | None = None
                 try:
                     property_list = await app.read_property_multiple(
-                        device_address,
-                        (object_identifier, '8')
+                        device_address, (object_identifier, "8")
                     )
+                    object_object = (create_bacnet_object_from_properties(object_class, property_list))
+                    if hasattr(object_object, "presentValue") and False:
+                        print(f"      object_present_value: {object_object.presentValue}")
+                    print(f"    set properties: {get_set_properties(object_object)}")
+                    for property in object_class._required + ("objectName", "objectType", "description"):
+                        if hasattr(object_object, property):
+                            value = getattr(object_object, property)
+                            if value is not None:
+                                print(f"      {property}: {value}")
+                        else:
+                            if show_warnings:
+                                sys.stderr.write(
+                                    f"Warning: {object_identifier} missing required property: {property}\n"
+                                )
+                    if object_class is BinaryValueObject:
+                        object_class._required
 
-                    property: (ObjectIdentifier, PropertyIdentifier, int | None, str | int | None)
-                    for property in property_list:
-                        print(f"    - {property[1]}: {property[3]}")
-                    if _debug:
-                        _log.debug("    - property_list: %r", property_list)
+                    # property: (ObjectIdentifier, PropertyIdentifier, int | None, str | int | None)
+                    # for property in property_list:
+                    #     print(f"    - {property[1]}: {property[3]}")
+                    # if _debug:
+                    #     _log.debug("    - property_list: %r", property_list)
                 except ErrorRejectAbortNack as err:
                     if show_warnings:
                         sys.stderr.write(

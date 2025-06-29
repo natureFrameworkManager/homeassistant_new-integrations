@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from typing import Any
+
+from bacpypes3.object import BinaryPV, BinaryValueObject, DeviceObject
+
 from homeassistant.components.climate import (
     ClimateEntity,
     ClimateEntityFeature,
@@ -31,38 +35,56 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up the Beamer from a config entry."""
+    print(f"config_entry_data: {config_entry.data}")
     entities = []
-    entities.append(BacnetClimate(config_entry.runtime_data))
-    async_add_entities(entities, update_before_add=True)
+    if config_entry.data["objects"].get("heating") is not None:
+        print(
+            f"Found heating objects in config entry data: {config_entry.data['objects']['heating']}"
+        )
+        for num_, object_ in config_entry.data["objects"]["heating"].items():
+            entities.append(
+                BacnetClimate(config_entry.data["objects"]["device"], str(num_), object_)
+            )
+        async_add_entities(entities, update_before_add=True)
+    else:
+        print("No heating objects found in config entry data.")
 
 
 class BacnetClimate(ClimateEntity):
     """Representation of an Epson Beamer media player."""
 
-    _attr_name = "Beamer"
-
-    def __init__(self, runtime_data) -> None:
+    def __init__(
+        self,
+        device: DeviceObject,
+        id: str,
+        runtime_data: dict[str, float | BinaryPV | Any],
+    ) -> None:
         """Initialize the media player entity."""
-        print("BacnetClimate init")
-        print(runtime_data)
-        print("BacnetClimate init done")
+        print(f"Initializing BacnetClimate with id: {id}")
+        print(
+            f"entity_data : {runtime_data}"
+        )  # {'current_temp': 26.64322853088379, 'current_target_temp': 15.0, 'day_target_temp': 22.0, 'night_target_temp': 15.0, 'night_target_temp_active': <BinaryPV: active>, 'day_control_active': <BinaryPV: inactive>, 'hand_control_request': 0.0, 'hand_control_influence': 0.0}
         self._attr_state = None
-        self._attr_unique_id = "oifurifufriufbriufb"
+        self._attr_name = f"{device.description or device.objectName} {id}"
+        self._attr_unique_id = str(device.objectIdentifier) + "-" + id
         self._attr_temperature_unit = UnitOfTemperature.CELSIUS
-        self._attr_hvac_mode = HVACMode.HEAT
+        if runtime_data["current_temp"] < runtime_data["current_target_temp"]:
+            self._attr_hvac_mode = HVACMode.HEAT
+        else:
+            self._attr_hvac_mode = HVACMode.OFF
         self._attr_hvac_modes = [
             HVACMode.OFF,
             HVACMode.HEAT,
         ]
         self._attr_device_info = {
-            "identifiers": {(DOMAIN, self._attr_unique_id)},
-            "name": self._attr_name,
+            "identifiers": {(DOMAIN, str(device.objectIdentifier))},
+            "name": device.description or device.objectName,
             "manufacturer": "Epson",
             # "model": api.get_model_name(),
             # "sw_version": api.get_firmware_version(),
         }
-        self._attr_current_temperature = 20.0
-        self._attr_target_temperature = 22.0
+        self._attr_current_temperature = runtime_data["current_temp"]
+        self._attr_target_temperature = runtime_data["current_target_temp"]
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added to Home Assistant."""
@@ -79,13 +101,13 @@ class BacnetClimate(ClimateEntity):
 
     async def async_update(self) -> None:
         """Update the state of the climate entity."""
-        self._attr_current_temperature = self._attr_current_temperature + 1.0
-        self._attr_target_temperature = self._attr_target_temperature + 1.0
+        self._attr_current_temperature = self._attr_current_temperature
+        self._attr_target_temperature = self._attr_target_temperature
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set new target hvac mode."""
         self._attr_hvac_mode = hvac_mode
-        #TODO: Implement actual logic to set the HVAC mode
+        # TODO: Implement actual logic to set the HVAC mode
 
     async def async_turn_on(self):
         """Turn the entity on."""
@@ -103,4 +125,4 @@ class BacnetClimate(ClimateEntity):
                 self._attr_hvac_mode = HVACMode.OFF
             else:
                 self._attr_hvac_mode = HVACMode.HEAT
-        #TODO: Implement actual logic to set the target temperature
+        # TODO: Implement actual logic to set the target temperature

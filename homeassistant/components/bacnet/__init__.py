@@ -21,8 +21,6 @@ type BacnetSensorConfigEntry = ConfigEntry[BACnetAPI]
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up bacnet from a config entry."""
 
-    entry.runtime_data = entry.data
-
     await hass.config_entries.async_forward_entry_setups(entry, _PLATFORMS)
 
     return True
