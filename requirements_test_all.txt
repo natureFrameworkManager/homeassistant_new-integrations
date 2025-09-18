@@ -36,7 +36,7 @@ Mastodon.py==2.0.1
 # homeassistant.components.seven_segments
 # homeassistant.components.sighthound
 # homeassistant.components.tensorflow
-Pillow==11.2.1
+Pillow==11.3.0
 
 # homeassistant.components.plex
 PlexAPI==4.15.16
@@ -945,7 +945,7 @@ gspread==5.5.0
 guppy3==3.1.5
 
 # homeassistant.components.iaqualink
-h2==4.2.0
+h2==4.3.0
 
 # homeassistant.components.ffmpeg
 ha-ffmpeg==3.2.2
@@ -1173,7 +1173,7 @@ mbddns==0.1.2
 
 # homeassistant.components.mcp
 # homeassistant.components.mcp_server
-mcp==1.5.0
+mcp==1.10.0
 
 # homeassistant.components.minecraft_server
 mcstatus==11.1.1
