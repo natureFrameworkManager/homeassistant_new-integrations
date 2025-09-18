@@ -1,0 +1,18 @@
+{
+  "domain": "bacnetheating",
+  "name": "bacnet_heating",
+  "codeowners": [
+    "@natureFrameworkManager"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://www.home-assistant.io/integrations/bacnet_heating",
+  "homekit": {},
+  "iot_class": "local_polling",
+  "quality_scale": "bronze",
+  "requirements": [
+    "bacpypes3==0.0.102"
+  ],
+  "ssdp": [],
+  "zeroconf": []
+}

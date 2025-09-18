@@ -5,14 +5,11 @@
     "@natureFrameworkManager"
   ],
   "config_flow": true,
-  "dependencies": [],
   "documentation": "https://www.home-assistant.io/integrations/bacnet",
-  "homekit": {},
   "iot_class": "local_polling",
   "quality_scale": "bronze",
   "requirements": [
-    "BAC0==2025.6.10"
+    "bacpypes3==0.0.102"
   ],
-  "ssdp": [],
-  "zeroconf": []
+  "version": "0.1.0"
 }

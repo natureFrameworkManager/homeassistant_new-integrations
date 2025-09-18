@@ -22,19 +22,17 @@ _LOGGER = logging.getLogger(__name__)
 class BACnetAPI:
     """API for interacting with BACnet devices."""
 
-    def __init__(self, address_with_mask: str = "192.168.1.104/24") -> None:
-        """Initialize API."""
-        self.address_with_mask = address_with_mask
-
-    def setOwnIP(self, address_with_mask: str = "192.168.1.104/24") -> None:
-        """Update own IP Address."""
-        self.address_with_mask = address_with_mask
+    def get_set_properties(self, obj: object) -> dict[str, object]:
+        """Return a dict of all set (non-None) properties for a BACnet object."""
+        # BACpypes3 objects have _elements with property names
+        return {
+            attr: getattr(obj, attr)
+            for attr in obj._elements.keys()
+            if getattr(obj, attr, None) is not None
+        }
 
     async def object_identifiers(
-        self,
-        app: Application,
-        device_address: Address,
-        device_identifier: ObjectIdentifier,
+        self, app: Application, device_address: Address, device_identifier: ObjectIdentifier
     ) -> list[ObjectIdentifier]:
         """Read the entire object list from a device at once, or if that fails, read the object identifiers one at a time."""
 
@@ -119,9 +117,9 @@ class BACnetAPI:
             "could_not_parse": {},
             "not_supported": {},
         }
-        for identifier, object_ in objects.items():
+        for (identifier, object_) in objects.items():
             if isinstance(object_, (BinaryValueObject, AnalogValueObject)):
-                split_name = re.split(r"\/+", object_.objectName)
+                split_name = re.split(r'\/+', object_.objectName)
                 if len(split_name) > 1 and split_name[4] == "S337.01":
                     if return_data.get("heating") is None:
                         return_data["heating"] = {}
@@ -137,37 +135,21 @@ class BACnetAPI:
                             "hand_control_influence": Any,
                         }
                     if split_name[5] == "5100":
-                        return_data["heating"][int(split_name[2])][
-                            "day_target_temp"
-                        ] = object_.presentValue
+                        return_data["heating"][int(split_name[2])]["day_target_temp"] = object_.presentValue
                     if split_name[5] == "5101":
-                        return_data["heating"][int(split_name[2])][
-                            "current_target_temp"
-                        ] = object_.presentValue
+                        return_data["heating"][int(split_name[2])]["current_target_temp"] = object_.presentValue
                     if split_name[5] == "5102":
-                        return_data["heating"][int(split_name[2])]["current_temp"] = (
-                            object_.presentValue
-                        )
+                        return_data["heating"][int(split_name[2])]["current_temp"] = object_.presentValue
                     if split_name[5] == "5107":
-                        return_data["heating"][int(split_name[2])][
-                            "night_target_temp"
-                        ] = object_.presentValue
+                        return_data["heating"][int(split_name[2])]["night_target_temp"] = object_.presentValue
                     if split_name[5] == "5108":
-                        return_data["heating"][int(split_name[2])][
-                            "night_target_temp_active"
-                        ] = object_.presentValue
+                        return_data["heating"][int(split_name[2])]["night_target_temp_active"] = object_.presentValue
                     if split_name[5] == "5110":
-                        return_data["heating"][int(split_name[2])][
-                            "hand_control_request"
-                        ] = object_.presentValue
+                        return_data["heating"][int(split_name[2])]["hand_control_request"] = object_.presentValue
                     if split_name[5] == "5178":
-                        return_data["heating"][int(split_name[2])][
-                            "day_control_active"
-                        ] = object_.presentValue
+                        return_data["heating"][int(split_name[2])]["day_control_active"] = object_.presentValue
                     if split_name[5] == "5328":
-                        return_data["heating"][int(split_name[2])][
-                            "hand_control_influence"
-                        ] = object_.presentValue
+                        return_data["heating"][int(split_name[2])]["hand_control_influence"] = object_.presentValue
                 else:
                     return_data["could_not_parse"][identifier] = object_
             if isinstance(object_, DeviceObject):
@@ -176,13 +158,15 @@ class BACnetAPI:
                 return_data["not_supported"][identifier] = object_
         return return_data
 
-    async def discoverDevices(self, device_address=None) -> list:
+    async def discoverDevices(
+        self, address_with_mask: str = "192.168.1.104/24"
+    ) -> list:
         """Discover BACnet devices on the network."""
         app = None
         try:
             # Simulate argparse.Namespace as used in CLI
             args = Namespace(
-                address=self.address_with_mask,
+                address=address_with_mask,
                 loggers=False,
                 debug=None,
                 color=None,
@@ -198,9 +182,7 @@ class BACnetAPI:
             app = Application.from_args(args)
             devices = []
             # run the query
-            if device_address is not None:
-                device_address = Address(device_address)
-            i_ams = await app.who_is(0, 1000, address=device_address)
+            i_ams = await app.who_is(0, 1000)
             for i_am in i_ams:
                 # print(vars(i_am)) # bacpypes3.apdu.IAmRequest(UnconfirmedRequestPDU) // {'pduSource': <IPv4Address 192.168.1.113>, 'pduDestination': <GlobalBroadcast *:*>, 'pduExpectingReply': False, 'pduNetworkPriority': 0, 'pduUserData': None, 'pduData': bytearray(b''), 'apduType': 1, 'apduService': 0, 'segmentationSupported': <Segmentation: segmented-both>, 'vendorID': 39, 'iAmDeviceIdentifier': (<ObjectType: device>, 13), 'maxAPDULengthAccepted': 480}
                 device_address: Address = i_am.pduSource
@@ -239,13 +221,14 @@ class BACnetAPI:
         device_address: Address,
         device_identifier: ObjectIdentifier,
         vendor_id: int,
+        address_with_mask: str = "192.168.1.104/24",
     ) -> dict[str, Any]:
         """Get the objects of a BACnet device."""
         app = None
         try:
             # Simulate argparse.Namespace as used in CLI
             args = Namespace(
-                address=self.address_with_mask,
+                address=address_with_mask,
                 loggers=False,
                 debug=None,
                 color=None,
@@ -266,9 +249,9 @@ class BACnetAPI:
             # print(f"Object list: {object_list}")
             objects = {}
             for object_identifier in object_list:
-                object_class = get_vendor_info(vendor_id).get_object_class(
-                    object_identifier[0]
-                )
+                object_class = get_vendor_info(
+                    vendor_id
+                ).get_object_class(object_identifier[0])
                 if object_class is None:
                     sys.stderr.write(f"unknown object type: {object_identifier}\n")
                     continue
@@ -281,11 +264,7 @@ class BACnetAPI:
                         device_address, (object_identifier, "8")
                     )
 
-                    objects[str(object_identifier)] = (
-                        self.create_bacnet_object_from_properties(
-                            object_class, property_list
-                        )
-                    )
+                    objects[str(object_identifier)] = self.create_bacnet_object_from_properties(object_class, property_list)
                 except ErrorRejectAbortNack as err:
                     sys.stderr.write(
                         f"{object_identifier} property-list error: {err}\n"
@@ -294,116 +273,6 @@ class BACnetAPI:
         except Exception as err:
             print("BACnet getObjects failed: %s", err)
             raise ConfigEntryNotReady from err
-        finally:
-            # ensure the application is stopped
-            if app is not None:
-                app.close()
-
-    async def getDevice(
-        self,
-        device_address: Address,
-        device_identifier: ObjectIdentifier,
-    ) -> DeviceObject:
-        """Get the Device Object of a BACnet device."""
-        app = None
-        try:
-            # Simulate argparse.Namespace as used in CLI
-            args = Namespace(
-                address=self.address_with_mask,
-                loggers=False,
-                debug=None,
-                color=None,
-                route_aware=None,
-                name="Excelsior",
-                instance=999,
-                network=0,
-                vendoridentifier=999,
-                foreign=None,
-                ttl=30,
-                bbmd=None,
-            )
-            app = Application.from_args(args)
-            print(
-                f"Getting device object for device {device_identifier} at {device_address}"
-            )
-            # read the property list
-            property_list: list[PropertyIdentifier] | None = None
-            try:
-                property_list = await app.read_property_multiple(
-                    device_address, (device_identifier, "8")
-                )
-
-                return self.create_bacnet_object_from_properties(
-                    DeviceObject, property_list
-                )
-            except ErrorRejectAbortNack as err:
-                sys.stderr.write(f"device object property-list error: {err}\n")
-                return None
-        except Exception as err:
-            print("BACnet getDevice failed: %s", err)
-            raise ConfigEntryNotReady from err
-        finally:
-            # ensure the application is stopped
-            if app is not None:
-                app.close()
-
-    async def getProperty(
-        self,
-        device_address: Address,
-        vendor_id,
-        object_identifier: ObjectIdentifier,
-        property: str = "present-value",
-    ) -> Any:
-        """Get the objects of a BACnet device."""
-        app = None
-        try:
-            # Simulate argparse.Namespace as used in CLI
-            args = Namespace(
-                address=self.address_with_mask,
-                loggers=False,
-                debug=None,
-                color=None,
-                route_aware=None,
-                name="Excelsior",
-                instance=999,
-                network=0,
-                vendoridentifier=999,
-                foreign=None,
-                ttl=30,
-                bbmd=None,
-            )
-            app = Application.from_args(args)
-            # print(
-            #     f"Getting property {property} for object {object_identifier} at {device_address}"
-            # )
-            # print(f"object_identifier: {object_identifier.split(',')[0]}")
-            # print(f"object_identifier: {ObjectIdentifier(object_identifier)}")
-            # print(f"Vendor id: {vendor_id}")
-            # print(f"Vendor Info: {get_vendor_info(vendor_id)}")
-            # print(
-            #     f"Vendor class: {get_vendor_info(vendor_id).get_object_class(ObjectIdentifier(object_identifier)[0])}"
-            # )
-            # object_class = get_vendor_info(vendor_id).get_object_class(
-            #     ObjectIdentifier(object_identifier)[0]
-            # )
-            # # read the property list
-            # property_list: list[PropertyIdentifier] | None = None
-            try:
-                # print(f"Object class: {object_class}")
-                # print(f"Vars: {device_address} {object_identifier} {property}")
-                response = await app.read_property(
-                    device_address,
-                    object_identifier,
-                    property,
-                )
-                print(response)
-                return response
-            except Exception as err:
-                sys.stderr.write(f"{object_identifier} property-list error: {err}\n")
-                raise Exception from err
-        except Exception as err:
-            sys.stderr.write(f"{object_identifier} property error: {err}\n")
-            raise Exception from err
         finally:
             # ensure the application is stopped
             if app is not None:
