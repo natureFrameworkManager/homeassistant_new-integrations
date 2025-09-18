@@ -1,4 +1,4 @@
-"""Platform for sensor integration."""
+"""Platform for climate integration."""
 
 from __future__ import annotations
 
