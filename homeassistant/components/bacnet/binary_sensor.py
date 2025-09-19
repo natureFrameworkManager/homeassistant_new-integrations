@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from bacpypes3.object import BinaryPV, BinaryValueObject, DeviceObject
 
 from homeassistant.components.binary_sensor import (
-    BinarySensorEntity,
     BinarySensorDeviceClass,
+    BinarySensorEntity,
 )
-from homeassistant.const import UnitOfTemperature
+from homeassistant.const import STATE_OFF, STATE_ON, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -46,11 +46,11 @@ async def async_setup_entry(
     """Set up the Beamer from a config entry."""
     print(f"config_entry_data: {config_entry.data}")
     entities = []
-    if config_entry.data["entities"].get("binary") is not None:
+    if config_entry.data["entities"].get("binary_sensor") is not None:
         print(
-            f"Found binary objects in config entry data: {config_entry.data['entities']['binary']}"
+            f"Found binary sensor objects in config entry data: {config_entry.data['entities']['binary_sensor']}"
         )
-        for entity in config_entry.data["entities"]["binary"]:
+        for entity in config_entry.data["entities"]["binary_sensor"]:
             entities.append(
                 BacnetBinary(
                     config_entry.data["own_ip"],
@@ -80,10 +80,12 @@ class BacnetBinary(BinarySensorEntity):
         self.own_ip = own_ip
         self.device_address = device_address
         self.device = device
-        self.state_id = runtime_data["current_temperature"]
+        self.state_id = runtime_data["is_on"]
 
         self._attr_is_on = None
-        self._attr_device_class = None # BinarySensorDeviceClass.LIGHT
+        self._attr_device_class = BinarySensorDeviceClass[
+            runtime_data["device_class"]
+        ]  # BinarySensorDeviceClass.LIGHT
 
         self._attr_name = f"{runtime_data['name']}"
         self._attr_unique_id = str(self.device.objectIdentifier) + "-" + self._attr_name
@@ -103,8 +105,18 @@ class BacnetBinary(BinarySensorEntity):
     async def async_update(self) -> None:
         """Update the state of the sensor entity."""
         api = BACnetAPI(self.own_ip)
-        self._attr_is_on = await api.getProperty(
-            self.device_address,
-            self.device.vendorIdentifier,
-            self.state_id,
+        state = BinaryPV(
+            await api.getProperty(
+                self.device_address,
+                self.device.vendorIdentifier,
+                self.state_id,
+            )
         )
+        self._attr_is_on = str(state) == "active"
+
+    @property
+    def state(self) -> Literal["on", "off"] | None:
+        """Return the state of the binary sensor."""
+        if (is_on := self.is_on) is None:
+            return None
+        return STATE_ON if is_on else STATE_OFF
