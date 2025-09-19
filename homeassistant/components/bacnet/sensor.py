@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from bacpypes3.object import BinaryPV, BinaryValueObject, DeviceObject
+from bacpypes3.object import EngineeringUnits, AnalogValueObject, DeviceObject
 
 from homeassistant.components.sensor import (
     SensorEntity,
@@ -36,10 +36,28 @@ async def async_setup_entry(
     """Set up the Sensor from a config entry."""
     print(f"config_entry_data: {config_entry.data}")
     entities = []
-    if config_entry.data["entities"].get("binary") is not None:
+    if config_entry.data["entities"].get("sensor") is not None:
         print(
-            f"Found sensor objects in config entry data: {config_entry.data['entities']['binary']}"
+            f"Found sensor objects in config entry data: {config_entry.data['entities']['sensor']}"
         )
+        for entity in config_entry.data["entities"]["sensor"]:
+            api = BACnetAPI(config_entry.data["own_ip"])
+            entity["unit"] = await api.getProperty(
+                config_entry.data["device"]["device_address"],
+                config_entry.runtime_data.vendorIdentifier,
+                entity["native_value"],
+                "units",
+            )
+
+            entities.append(
+                BacnetSensor(
+                    config_entry.data["own_ip"],
+                    config_entry.data["device"]["device_address"],
+                    config_entry.runtime_data,
+                    entity,
+                )
+            )
+        async_add_entities(entities, update_before_add=True)
     else:
         print("No sensor objects found in config entry data.")
 
@@ -49,17 +67,45 @@ class BacnetSensor(SensorEntity):
 
     def __init__(
         self,
+        own_ip: str,
+        device_address: str,
         device: DeviceObject,
-        id: str,
-        runtime_data: dict[str, float | BinaryPV | Any],
+        runtime_data: dict[str, str],
     ) -> None:
         """Initialize the Binary Sensor entity."""
         print(f"Initializing BacnetSensor with id: {id}")
         print(f"entity_data : {runtime_data}")
-        self.native_value = 20.0
-        self.native_unit_of_measurement = "°C"
-        self.options = None
-        self.device_class = SensorDeviceClass.TEMPERATURE
+        self.own_ip = own_ip
+        self.device_address = device_address
+        self.device = device
+        self.value_id = runtime_data["native_value"]
+
+        self._attr_native_value = None
+
+        print(str(runtime_data["unit"]) == "degrees-celsius")
+        if str(runtime_data["unit"]) == "degrees-celsius":
+            self._attr_native_unit_of_measurement = "°C"
+            self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        elif str(runtime_data["unit"]) == "degrees-kelvin":
+            self._attr_native_unit_of_measurement = "K"
+            self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        elif str(runtime_data["unit"]) == "percent":
+            self._attr_native_unit_of_measurement = "%"
+            self._attr_device_class = None
+        else:
+            self._attr_native_unit_of_measurement = None
+            self._attr_device_class = None
+
+        self._attr_name = f"{runtime_data['name']}"
+        self._attr_unique_id = str(self.device.objectIdentifier) + "-" + self._attr_name
+
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, str(device.objectIdentifier))},
+            "name": device.description or device.objectName,
+            "manufacturer": device.vendorName,
+            "model": device.modelName,
+            "sw_version": device.applicationSoftwareVersion,
+        }
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added to Home Assistant."""
@@ -67,4 +113,9 @@ class BacnetSensor(SensorEntity):
 
     async def async_update(self) -> None:
         """Update the state of the sensor entity."""
-        self._attr_is_on = True
+        api = BACnetAPI(self.own_ip)
+        self._attr_native_value = await api.getProperty(
+            self.device_address,
+            self.device.vendorIdentifier,
+            self.value_id,
+        )

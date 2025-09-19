@@ -149,84 +149,55 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
                         }
                     ),
                 vol.Required("name"): str,
-                vol.Required("is_on"): vol.In(
+                vol.Required("native_value"): vol.In(
+                    dict(sorted(options.items(), key=lambda item: item[1]))
+                ),
+            }
+        )
+
+    def _get_analog_entity_schema(self):
+        options = {}
+        for object_name in self.objects:
+            object_instance = self.objects[object_name]
+            if (
+                hasattr(object_instance, "description")
+                and hasattr(object_instance, "objectName") is not None
+            ):
+                options[object_name] = (
+                    str(object_instance.description)
+                    + " - "
+                    + str(object_instance.objectName)
+                )
+
+            elif hasattr(object_instance, "description") is not None:
+                options[object_name] = str(object_instance.description)
+            else:
+                options[object_name] = str(object_instance.objectName)
+        return  vol.Schema(
+            {
+                vol.Optional("text"): selector(
+                    {"constant": {"value": True, "label": "Host: 192.168.1.112"}}
+                ),
+                vol.Required("name"): str,
+                vol.Required("native_value"): vol.In(
                     dict(sorted(options.items(), key=lambda item: item[1]))
                 ),
                 vol.Required("device_class", default="none"): selector(
                     {
                         "select": {
                             "options": [
-                                "None",
-                                "BATTERY",
-                                "BATTERY_CHARGING",
-                                "CO",
-                                "COLD",
-                                "CONNECTIVITY",
-                                "DOOR",
-                                "GARAGE_DOOR",
-                                "GAS",
-                                "HEAT",
-                                "LIGHT",
-                                "LOCK",
-                                "MOISTURE",
-                                "MOTION",
-                                "OCCUPANCY",
-                                "OPENING",
-                                "PLUG",
-                                "POWER",
-                                "PRESENCE",
-                                "PROBLEM",
-                                "RUNNING",
-                                "SAFETY",
-                                "SMOKE",
-                                "SOUND",
-                                "TAMPER",
-                                "UPDATE",
-                                "VIBRATION",
-                                "WINDOW"
+                                "none",
+                                "Option 2",
+                                "Option 3",
+                                "Option 4",
+                                "Option 5",
+                                "Option 6",
                             ],
                         },
                     }
                 ),
             }
         )
-
-    STEP_CONFIG_ANALOG_ENTITY_SCHEMA = vol.Schema(
-        {
-            vol.Optional("text"): selector(
-                {"constant": {"value": True, "label": "Host: 192.168.1.112"}}
-            ),
-            vol.Required("name"): str,
-            vol.Required("native_value"): selector(
-                {
-                    "select": {
-                        "options": [
-                            "Option 1",
-                            "Option 2",
-                            "Option 3",
-                            "Option 4",
-                            "Option 5",
-                            "Option 6",
-                        ],
-                    },
-                }
-            ),
-            vol.Required("device_class", default="none"): selector(
-                {
-                    "select": {
-                        "options": [
-                            "none",
-                            "Option 2",
-                            "Option 3",
-                            "Option 4",
-                            "Option 5",
-                            "Option 6",
-                        ],
-                    },
-                }
-            ),
-        }
-    )
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -305,7 +276,7 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
                 if self.next_entity == "sensor":
                     return self.async_show_form(
                         step_id="config_entity",
-                        data_schema=self.STEP_CONFIG_ANALOG_ENTITY_SCHEMA,
+                        data_schema=self._get_analog_entity_schema(),
                         errors=errors,
                     )
                 if self.next_entity == "finish":
