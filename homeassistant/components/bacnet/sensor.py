@@ -92,6 +92,15 @@ class BacnetSensor(SensorEntity):
         elif str(runtime_data["unit"]) == "percent":
             self._attr_native_unit_of_measurement = "%"
             self._attr_device_class = None
+        elif str(runtime_data["unit"]) == "hours":
+            self._attr_native_unit_of_measurement = "h"
+            self._attr_device_class = SensorDeviceClass.DURATION
+        elif str(runtime_data["unit"]) == "degrees-kelvin-per-hour":
+            self._attr_native_unit_of_measurement = "K/h"
+            self._attr_device_class = None
+        elif str(runtime_data["unit"]) == "paskals":
+            self._attr_native_unit_of_measurement = "Pa"
+            self._attr_device_class = SensorDeviceClass.PRESSURE
         else:
             self._attr_native_unit_of_measurement = None
             self._attr_device_class = None
