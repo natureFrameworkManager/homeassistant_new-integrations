@@ -2,21 +2,22 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Literal
 
-from bacpypes3.object import BinaryPV, BinaryValueObject, DeviceObject
+from bacpypes3.object import DeviceObject
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
-from homeassistant.const import STATE_OFF, STATE_ON, UnitOfTemperature
-from homeassistant.core import HomeAssistant
+from homeassistant.const import STATE_OFF, STATE_ON
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import BACnetConfigEntry
-from .api import BACnetAPI
 from .const import DOMAIN
+from .coordinator import APICoordinator
 
 # def setup_platform(
 #     hass: HomeAssistant,
@@ -55,8 +56,9 @@ async def async_setup_entry(
                 BacnetBinary(
                     config_entry.data["own_ip"],
                     config_entry.data["device"]["device_address"],
-                    config_entry.runtime_data,
+                    config_entry.runtime_data["device_obj"],
                     entity,
+                    config_entry.runtime_data["api_coordinator"],
                 )
             )
         async_add_entities(entities, update_before_add=True)
@@ -64,7 +66,7 @@ async def async_setup_entry(
         print("No binary sensor objects found in config entry data.")
 
 
-class BacnetBinary(BinarySensorEntity):
+class BacnetBinary(CoordinatorEntity, BinarySensorEntity):
     """Representation of an Binary Sensor."""
 
     def __init__(
@@ -73,6 +75,7 @@ class BacnetBinary(BinarySensorEntity):
         device_address: str,
         device: DeviceObject,
         runtime_data: dict[str, str],
+        apiCoordinator: APICoordinator,
     ) -> None:
         """Initialize the Binary Sensor entity."""
         print(f"Initializing BacnetBinary with id: {id}")
@@ -81,6 +84,14 @@ class BacnetBinary(BinarySensorEntity):
         self.device_address = device_address
         self.device = device
         self.state_id = runtime_data["is_on"]
+
+        context = {
+            "device_address": device_address,
+            "vendor_id": device.vendorIdentifier,
+            "value_id": runtime_data["is_on"],
+            "entity_id": runtime_data["name"],  # Add a unique identifier
+        }
+        super().__init__(apiCoordinator, context=context)
 
         self._attr_is_on = None
         self._attr_device_class = BinarySensorDeviceClass[
@@ -100,19 +111,24 @@ class BacnetBinary(BinarySensorEntity):
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added to Home Assistant."""
+        await super().async_added_to_hass()
         await self.async_update()
 
     async def async_update(self) -> None:
         """Update the state of the sensor entity."""
-        api = BACnetAPI(self.own_ip)
-        state = BinaryPV(
-            await api.getProperty(
-                self.device_address,
-                self.device.vendorIdentifier,
-                self.state_id,
+        await self.coordinator.async_request_refresh()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        if self.coordinator.data and self._attr_name in self.coordinator.data:
+            print(
+                f"Updating sensor {self._attr_name} with value: {self.coordinator.data[self._attr_name]}"
             )
-        )
-        self._attr_is_on = str(state) == "active"
+            self._attr_is_on = str(self.coordinator.data[self._attr_name]) == "active"
+            self.async_write_ha_state()
+        else:
+            print(f"No data found for sensor {self._attr_name} in coordinator update.")
 
     @property
     def state(self) -> Literal["on", "off"] | None:

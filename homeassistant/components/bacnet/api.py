@@ -1,7 +1,6 @@
 """API for interacting with BACnet devices in Home Assistant."""
 
 from argparse import Namespace
-import asyncio
 import logging
 import re
 import sys
@@ -404,6 +403,83 @@ class BACnetAPI:
         except Exception as err:
             sys.stderr.write(f"{object_identifier} property error: {err}\n")
             raise Exception from err
+        finally:
+            # ensure the application is stopped
+            if app is not None:
+                app.close()
+
+    async def getProperties(
+        self,
+        contexts: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Get multiple properties from BACnet devices.
+
+        Args:
+            contexts: List of context dictionaries containing:
+                - device_address: Device address
+                - vendor_id: Vendor identifier
+                - value_id: Object identifier for the value
+                - entity_id: Unique identifier for the entity
+                - property_name: Name of property to read, defaults to "present-value"
+
+        Returns:
+            Dictionary mapping entity_ids to their property values
+
+        """
+
+        print(f"Getting properties for contexts: {contexts}")
+
+        app = None
+        try:
+            # Set up BACnet application
+            args = Namespace(
+                address=self.address_with_mask,
+                loggers=False,
+                debug=None,
+                color=None,
+                route_aware=None,
+                name="Excelsior",
+                instance=999,
+                network=0,
+                vendoridentifier=999,
+                foreign=None,
+                ttl=30,
+                bbmd=None,
+            )
+            app = Application.from_args(args)
+
+            results = {}
+            # Process each device's requests
+            for context in contexts:
+                try:
+                    print(f"Fetching value for context: {context['entity_id']}")
+                    print(
+                        f"Device Address: {context['device_address']}, Vendor ID: {context['vendor_id']}, Value ID: {context['value_id']}"
+                    )
+                    try:
+                        value = await self.my_api.getProperty(
+                            context["device_address"],
+                            context["vendor_id"],
+                            context["value_id"],
+                        )
+                        results[context["entity_id"]] = value
+                    except Exception as err:
+                        _LOGGER.error("Error getting value for %s: %s", context, err)
+
+                except Exception as err:
+                    _LOGGER.error(
+                        "Error reading properties from device %s: %s",
+                        context["device_address"],
+                        err,
+                    )
+                    continue
+
+            return results
+
+        except Exception as err:
+            _LOGGER.error("Failed to get properties: %s", err)
+            raise ConfigEntryNotReady from err
+
         finally:
             # ensure the application is stopped
             if app is not None:
