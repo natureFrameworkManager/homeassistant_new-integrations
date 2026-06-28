@@ -2,17 +2,21 @@
 
 from __future__ import annotations
 
-from bacpypes3.object import DeviceObject
+from typing import Any
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
-from homeassistant.core import HomeAssistant, callback
+from bacpypes3.object import BinaryPV, BinaryValueObject, DeviceObject
+
+from homeassistant.components.sensor import (
+    SensorEntity,
+    SensorDeviceClass,
+)
+from homeassistant.const import UnitOfTemperature
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import BACnetConfigEntry
 from .api import BACnetAPI
 from .const import DOMAIN
-from .coordinator import APICoordinator
 
 # def setup_platform(
 #     hass: HomeAssistant,
@@ -32,113 +36,35 @@ async def async_setup_entry(
     """Set up the Sensor from a config entry."""
     print(f"config_entry_data: {config_entry.data}")
     entities = []
-    if config_entry.data["entities"].get("sensor") is not None:
+    if config_entry.data["entities"].get("binary") is not None:
         print(
-            f"Found sensor objects in config entry data: {config_entry.data['entities']['sensor']}"
+            f"Found sensor objects in config entry data: {config_entry.data['entities']['binary']}"
         )
-        for entity in config_entry.data["entities"]["sensor"]:
-            api = BACnetAPI(config_entry.data["own_ip"])
-            entity["unit"] = await api.getProperty(
-                config_entry.data["device"]["device_address"],
-                config_entry.runtime_data["device_obj"].vendorIdentifier,
-                entity["native_value"],
-                "units",
-            )
-
-            entities.append(
-                BacnetSensor(
-                    config_entry.data["own_ip"],
-                    config_entry.data["device"]["device_address"],
-                    config_entry.runtime_data["device_obj"],
-                    entity,
-                    config_entry.runtime_data["api_coordinator"],
-                )
-            )
-        async_add_entities(entities, update_before_add=True)
     else:
         print("No sensor objects found in config entry data.")
 
 
-class BacnetSensor(CoordinatorEntity, SensorEntity):
+class BacnetSensor(SensorEntity):
     """Representation of an Sensor."""
 
     def __init__(
         self,
-        own_ip: str,
-        device_address: str,
         device: DeviceObject,
-        runtime_data: dict[str, str],
-        apiCoordinator: APICoordinator,
+        id: str,
+        runtime_data: dict[str, float | BinaryPV | Any],
     ) -> None:
         """Initialize the Binary Sensor entity."""
         print(f"Initializing BacnetSensor with id: {id}")
         print(f"entity_data : {runtime_data}")
-        self.own_ip = own_ip
-        self.device_address = device_address
-        self.device = device
-        self.value_id = runtime_data["native_value"]
-
-        context = {
-            "device_address": device_address,
-            "vendor_id": device.vendorIdentifier,
-            "value_id": runtime_data["native_value"],
-            "entity_id": runtime_data["name"],  # Add a unique identifier
-        }
-        super().__init__(apiCoordinator, context=context)
-
-        self._attr_native_value = None
-
-        print(str(runtime_data["unit"]) == "degrees-celsius")
-        if str(runtime_data["unit"]) == "degrees-celsius":
-            self._attr_native_unit_of_measurement = "°C"
-            self._attr_device_class = SensorDeviceClass.TEMPERATURE
-        elif str(runtime_data["unit"]) == "degrees-kelvin":
-            self._attr_native_unit_of_measurement = "K"
-            self._attr_device_class = SensorDeviceClass.TEMPERATURE
-        elif str(runtime_data["unit"]) == "percent":
-            self._attr_native_unit_of_measurement = "%"
-            self._attr_device_class = None
-        elif str(runtime_data["unit"]) == "hours":
-            self._attr_native_unit_of_measurement = "h"
-            self._attr_device_class = SensorDeviceClass.DURATION
-        elif str(runtime_data["unit"]) == "degrees-kelvin-per-hour":
-            self._attr_native_unit_of_measurement = "K/h"
-            self._attr_device_class = None
-        elif str(runtime_data["unit"]) == "pascals":
-            self._attr_native_unit_of_measurement = "Pa"
-            self._attr_device_class = SensorDeviceClass.PRESSURE
-        else:
-            self._attr_native_unit_of_measurement = None
-            self._attr_device_class = None
-
-        self._attr_name = f"{runtime_data['name']}"
-        self._attr_unique_id = str(self.device.objectIdentifier) + "-" + self._attr_name
-
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, str(device.objectIdentifier))},
-            "name": device.description or device.objectName,
-            "manufacturer": device.vendorName,
-            "model": device.modelName,
-            "sw_version": device.applicationSoftwareVersion,
-        }
+        self.native_value = 20.0
+        self.native_unit_of_measurement = "°C"
+        self.options = None
+        self.device_class = SensorDeviceClass.TEMPERATURE
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added to Home Assistant."""
-        await super().async_added_to_hass()
         await self.async_update()
 
     async def async_update(self) -> None:
         """Update the state of the sensor entity."""
-        await self.coordinator.async_request_refresh()
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        if self.coordinator.data and self._attr_name in self.coordinator.data:
-            print(
-                f"Updating sensor {self._attr_name} with value: {self.coordinator.data[self._attr_name]}"
-            )
-            self._attr_native_value = self.coordinator.data[self._attr_name]
-            self.async_write_ha_state()
-        else:
-            print(f"No data found for sensor {self._attr_name} in coordinator update.")
+        self._attr_is_on = True

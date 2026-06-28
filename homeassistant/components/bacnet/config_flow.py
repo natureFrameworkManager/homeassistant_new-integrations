@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import ifaddr
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
@@ -30,20 +29,6 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
         self.devices = []
         self.device = None
         self.create_entities = {}
-
-    def get_interfaces(self):
-        ips = []
-        adapters = ifaddr.get_adapters()
-        for adapter in adapters:
-            for ip in adapter.ips:
-                # IPv4 ist String, IPv6 ist Tuple
-                if ip.is_IPv6:
-                    continue
-                # Loopback ausschließen
-                if ip.ip.startswith("127."):
-                    continue
-                ips.append(f"{adapter.nice_name} - {ip.ip}/{ip.network_prefix}")
-        return ips
 
     def _get_user_schema(self):
         options = []
@@ -120,84 +105,79 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
             }
         )
 
-    def _get_binary_entity_schema(self):
-        options = {}
-        for object_name in self.objects:
-            object_instance = self.objects[object_name]
-            if (
-                hasattr(object_instance, "description")
-                and hasattr(object_instance, "objectName") is not None
-            ):
-                options[object_name] = (
-                    str(object_instance.description)
-                    + " - "
-                    + str(object_instance.objectName)
-                )
+    STEP_CONFIG_BINARY_ENTITY_SCHEMA = vol.Schema(
+        {
+            vol.Optional("text"): selector(
+                {"constant": {"value": True, "label": "Host: 192.168.1.112"}}
+            ),
+            vol.Required("name"): str,
+            vol.Required("is_on"): selector(
+                {
+                    "select": {
+                        "options": [
+                            "Option 1",
+                            "Option 2",
+                            "Option 3",
+                            "Option 4",
+                            "Option 5",
+                            "Option 6",
+                        ],
+                    },
+                }
+            ),
+            vol.Required("device_class", default="none"): selector(
+                {
+                    "select": {
+                        "options": [
+                            "none",
+                            "Option 2",
+                            "Option 3",
+                            "Option 4",
+                            "Option 5",
+                            "Option 6",
+                        ],
+                    },
+                }
+            ),
+        }
+    )
 
-            elif hasattr(object_instance, "description") is not None:
-                options[object_name] = str(object_instance.description)
-            else:
-                options[object_name] = str(object_instance.objectName)
-        return vol.Schema(
-            {
-                vol.Optional("text"): selector(
-                        {
-                            "constant": {
-                                "value": True,
-                                "label": "Host: " + str(self.device["device_address"]),
-                            }
-                        }
-                    ),
-                vol.Required("name"): str,
-                vol.Required("native_value"): vol.In(
-                    dict(sorted(options.items(), key=lambda item: item[1]))
-                ),
-            }
-        )
-
-    def _get_analog_entity_schema(self):
-        options = {}
-        for object_name in self.objects:
-            object_instance = self.objects[object_name]
-            if (
-                hasattr(object_instance, "description")
-                and hasattr(object_instance, "objectName") is not None
-            ):
-                options[object_name] = (
-                    str(object_instance.description)
-                    + " - "
-                    + str(object_instance.objectName)
-                )
-
-            elif hasattr(object_instance, "description") is not None:
-                options[object_name] = str(object_instance.description)
-            else:
-                options[object_name] = str(object_instance.objectName)
-        return  vol.Schema(
-            {
-                vol.Optional("text"): selector(
-                    {"constant": {"value": True, "label": "Host: 192.168.1.112"}}
-                ),
-                vol.Required("name"): str,
-                vol.Required("native_value"): vol.In(
-                    dict(sorted(options.items(), key=lambda item: item[1]))
-                ),
-                vol.Required("device_class", default="none"): selector(
-                    {
-                        "select": {
-                            "options": [
-                                "none",
-                                "Option 2",
-                                "Option 3",
-                                "Option 4",
-                                "Option 5",
-                                "Option 6",
-                            ],
-                        },
-                    }
-                ),
-            }
-        )
+    STEP_CONFIG_ANALOG_ENTITY_SCHEMA = vol.Schema(
+        {
+            vol.Optional("text"): selector(
+                {"constant": {"value": True, "label": "Host: 192.168.1.112"}}
+            ),
+            vol.Required("name"): str,
+            vol.Required("native_value"): selector(
+                {
+                    "select": {
+                        "options": [
+                            "Option 1",
+                            "Option 2",
+                            "Option 3",
+                            "Option 4",
+                            "Option 5",
+                            "Option 6",
+                        ],
+                    },
+                }
+            ),
+            vol.Required("device_class", default="none"): selector(
+                {
+                    "select": {
+                        "options": [
+                            "none",
+                            "Option 2",
+                            "Option 3",
+                            "Option 4",
+                            "Option 5",
+                            "Option 6",
+                        ],
+                    },
+                }
+            ),
+        }
+    )
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -206,49 +186,29 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         if user_input is not None:
             print(f"User input received: {user_input}")
-            if "own_ip" in user_input and user_input["own_ip"] is not None:
-                self.api.setOwnIP(user_input["own_ip"].split(" - ")[1])
-            if "ip" in user_input and user_input["ip"] is not None:
-                self.device = await self.api.discoverDevices(user_input["ip"])
-                if len(self.device) > 0:
-                    self.device = self.device[0]
-                    print(self.device)
-                    self.objects = await self.api.getObjects(
-                        self.device["device_address"],
-                        self.device["device_identifier"],
-                        self.device["vendor_id"],
-                    )
-                    print(self.objects)
-
-                    return self.async_show_form(
-                        step_id="add_entity",
-                        data_schema=self._get_add_entity_schema(),
-                        errors=errors,
-                    )
-                else:
-                    errors["base"] = "cannot_connect"
-            else:
-                self.devices = await self.api.discoverDevices()
-                print(self.devices)
-                return self.async_show_form(
-                    step_id="user", data_schema=self._get_user_schema(), errors=errors
+            self.device = await self.api.discoverDevices(user_input["ip"])
+            if len(self.device) > 0:
+                self.device = self.device[0]
+                print(self.device)
+                self.objects = await self.api.getObjects(
+                    self.device["device_address"],
+                    self.device["device_identifier"],
+                    self.device["vendor_id"],
                 )
+                print(self.objects)
 
+                return self.async_show_form(
+                    step_id="add_entity",
+                    data_schema=self._get_add_entity_schema(),
+                    errors=errors,
+                )
+            else:
+                errors["base"] = "cannot_connect"
+
+        self.devices = await self.api.discoverDevices()
+        print(self.devices)
         return self.async_show_form(
-            step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Required("own_ip"): selector(
-                        {
-                            "select": {
-                                "custom_value": True,
-                                "options": self.get_interfaces(),
-                            },
-                        }
-                    ),
-                }
-            ),
-            errors=errors,
+            step_id="user", data_schema=self._get_user_schema(), errors=errors
         )
 
     async def async_step_add_entity(
@@ -270,13 +230,13 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
                 if self.next_entity == "binary_sensor":
                     return self.async_show_form(
                         step_id="config_entity",
-                        data_schema=self._get_binary_entity_schema(),
+                        data_schema=self.STEP_CONFIG_BINARY_ENTITY_SCHEMA,
                         errors=errors,
                     )
                 if self.next_entity == "sensor":
                     return self.async_show_form(
                         step_id="config_entity",
-                        data_schema=self._get_analog_entity_schema(),
+                        data_schema=self.STEP_CONFIG_ANALOG_ENTITY_SCHEMA,
                         errors=errors,
                     )
                 if self.next_entity == "finish":
@@ -285,7 +245,6 @@ class ConfigFlow(ConfigFlow, domain=DOMAIN):
                     return self.async_create_entry(
                         title="self.device_identifier",
                         data={
-                            "own_ip": self.api.address_with_mask,
                             "entities": self.create_entities,
                             "device": self.device,
                         },

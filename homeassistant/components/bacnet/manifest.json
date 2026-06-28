@@ -10,6 +10,5 @@
   "quality_scale": "bronze",
   "requirements": [
     "bacpypes3==0.0.102"
-  ],
-  "version": "0.1.0"
+  ]
 }
