@@ -5,7 +5,10 @@ from datetime import timedelta
 import logging
 from typing import Any
 
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+
+from .api import BACnetAPI
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -13,7 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 class APICoordinator(DataUpdateCoordinator):
     """API call coordinator."""
 
-    def __init__(self, hass, config_entry, my_api) -> None:
+    def __init__(self, hass: HomeAssistant, config_entry, my_api: BACnetAPI) -> None:
         """Initialize coordinator."""
         super().__init__(
             hass,
@@ -61,23 +64,7 @@ class APICoordinator(DataUpdateCoordinator):
                 print(f"Flattened contexts: {flattened_contexts}")
 
                 # Initialize results dict
-                results = {}
-
-                # Get values for each registered entity
-                for context in flattened_contexts:
-                    print(f"Fetching value for context: {context['entity_id']}")
-                    print(
-                        f"Device Address: {context['device_address']}, Vendor ID: {context['vendor_id']}, Value ID: {context['value_id']}"
-                    )
-                    try:
-                        value = await self.my_api.getProperty(
-                            context["device_address"],
-                            context["vendor_id"],
-                            context["value_id"],
-                        )
-                        results[context["entity_id"]] = value
-                    except Exception as err:
-                        _LOGGER.error("Error getting value for %s: %s", context, err)
+                results = await self.my_api.getProperties(flattened_contexts)
                 print(f"Fetched results: {results}")
                 return results
 

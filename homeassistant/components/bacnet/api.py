@@ -451,28 +451,34 @@ class BACnetAPI:
             results = {}
             # Process each device's requests
             for context in contexts:
+                print(f"Fetching value for context: {context['entity_id']}")
+                print(
+                    f"Device Address: {context['device_address']}, Vendor ID: {context['vendor_id']}, Value ID: {context['value_id']}"
+                )
+                device_address: Address = context["device_address"]
+                vendor_id = context["vendor_id"]
+                object_identifier: ObjectIdentifier = context["value_id"]
+                properti: str = context.get("property_name", "present-value")
+                print(
+                    f"Device Address Obj: {device_address}, Value ID Obj: {object_identifier}, Property: {properti}, Vendor ID: {vendor_id}"
+                )
                 try:
-                    print(f"Fetching value for context: {context['entity_id']}")
-                    print(
-                        f"Device Address: {context['device_address']}, Vendor ID: {context['vendor_id']}, Value ID: {context['value_id']}"
-                    )
                     try:
-                        value = await self.my_api.getProperty(
-                            context["device_address"],
-                            context["vendor_id"],
-                            context["value_id"],
+                        response = await app.read_property(
+                            device_address,
+                            object_identifier,
+                            properti,
                         )
-                        results[context["entity_id"]] = value
+                        print(f"Response: {response}")
+                        results[context["entity_id"]] = response
                     except Exception as err:
-                        _LOGGER.error("Error getting value for %s: %s", context, err)
-
+                        sys.stderr.write(
+                            f"{object_identifier} property-list error: {err}\n"
+                        )
+                        raise Exception from err
                 except Exception as err:
-                    _LOGGER.error(
-                        "Error reading properties from device %s: %s",
-                        context["device_address"],
-                        err,
-                    )
-                    continue
+                    sys.stderr.write(f"{object_identifier} property error: {err}\n")
+                    raise Exception from err
 
             return results
 
